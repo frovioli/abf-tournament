@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/abf-tournament/static/css/main.042cc223.css",
+    "main.js": "/abf-tournament/static/js/main.34aad8cf.js",
+    "static/js/453.241598ae.chunk.js": "/abf-tournament/static/js/453.241598ae.chunk.js",
+    "index.html": "/abf-tournament/index.html",
+    "main.042cc223.css.map": "/abf-tournament/static/css/main.042cc223.css.map",
+    "main.34aad8cf.js.map": "/abf-tournament/static/js/main.34aad8cf.js.map",
+    "453.241598ae.chunk.js.map": "/abf-tournament/static/js/453.241598ae.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.042cc223.css",
+    "static/js/main.34aad8cf.js"
+  ]
+}
