@@ -20,6 +20,7 @@ const lastTournamentTitle = document.getElementById('last-tournament-title');
 const previousScoresBtn = document.getElementById('previous-scores-btn');
 const previousModal = document.getElementById('previous-modal');
 const closeModalBtn = document.querySelector('.close');
+const currentScoresModal = document.getElementById('current-scores-modal');
 const previousTournamentsDiv = document.getElementById('previous-tournaments');
 const loadingOverlay = document.getElementById('loading-overlay');
 const contentContainer = document.getElementById('content-container');
@@ -31,6 +32,9 @@ window.addEventListener('DOMContentLoaded', function() {
     // Set up score input formatting
     setupScoreInputFormatting();
     
+    // Set up modal event listeners
+    setupModalEventListeners();
+    
     // Load the config, then load the data
     loadConfig().then(() => {
         loadData();
@@ -41,6 +45,43 @@ window.addEventListener('DOMContentLoaded', function() {
         contentContainer.classList.add('content-loaded');
     });
 });
+
+// Set up modal event listeners
+function setupModalEventListeners() {
+    // Previous scores modal
+    previousScoresBtn.addEventListener('click', function() {
+        displayPreviousTournaments();
+        previousModal.style.display = 'block';
+    });
+    
+    closeModalBtn.addEventListener('click', function() {
+        previousModal.style.display = 'none';
+    });
+    
+    // Current scores modal
+    const currentScoresBtn = document.getElementById('current-scores-btn');
+    const currentScoresModal = document.getElementById('current-scores-modal');
+    const currentCloseBtn = document.querySelector('.current-close');
+    
+    currentScoresBtn.addEventListener('click', function() {
+        displayAllCurrentScores();
+        currentScoresModal.style.display = 'block';
+    });
+    
+    currentCloseBtn.addEventListener('click', function() {
+        currentScoresModal.style.display = 'none';
+    });
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target == previousModal) {
+            previousModal.style.display = 'none';
+        }
+        if (event.target == currentScoresModal) {
+            currentScoresModal.style.display = 'none';
+        }
+    });
+}
 
 // Set up score input formatting
 function setupScoreInputFormatting() {
@@ -225,8 +266,10 @@ async function loadData() {
         // Get current scores for the leaderboard
         CURRENT_SCORES = playersData
             .filter(player => player.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 3); // Get top 3 for podium
+            .sort((a, b) => b.score - a.score);
+        
+        // Top 3 for podium
+        const podiumScores = CURRENT_SCORES.slice(0, 3);
         
         // Load tournament results
         const resultsResponse = await fetch(`${API_URL}?operation=getResults`);
@@ -235,7 +278,7 @@ async function loadData() {
         // Update the UI
         populatePlayers();
         updateCurrentTournament();
-        displayCurrentLeaderboard();
+        displayCurrentLeaderboard(podiumScores);
         
         // Only display results if there are tournaments
         if (TOURNAMENTS.length > 0) {
@@ -333,7 +376,7 @@ function formatNumberWithDots(number) {
 }
 
 // Display current leaderboard
-function displayCurrentLeaderboard() {
+function displayCurrentLeaderboard(topScores) {
     // Clear existing content
     currentLeaderboardDiv.innerHTML = '';
     
@@ -341,6 +384,17 @@ function displayCurrentLeaderboard() {
     const title = document.createElement('h3');
     title.textContent = 'Current Tournament Leaderboard';
     currentLeaderboardDiv.appendChild(title);
+    
+    // Add the "Check all scores" button
+    const checkScoresBtn = document.createElement('button');
+    checkScoresBtn.id = 'current-scores-btn';
+    checkScoresBtn.className = 'current-scores-button';
+    checkScoresBtn.textContent = 'Check all scores';
+    checkScoresBtn.addEventListener('click', function() {
+        displayAllCurrentScores();
+        document.getElementById('current-scores-modal').style.display = 'block';
+    });
+    currentLeaderboardDiv.appendChild(checkScoresBtn);
     
     if (CURRENT_SCORES.length === 0) {
         const noScoresMsg = document.createElement('p');
@@ -364,8 +418,11 @@ function displayCurrentLeaderboard() {
     const thirdPlace = document.createElement('div');
     thirdPlace.className = 'podium-place';
     
+    // Use the topScores which are the top 3
+    const displayScores = topScores || CURRENT_SCORES.slice(0, 3);
+    
     // Fill in data for available positions
-    if (CURRENT_SCORES.length >= 1) {
+    if (displayScores.length >= 1) {
         const firstPlaceDiv = document.createElement('div');
         firstPlaceDiv.className = 'first-place';
         
@@ -375,11 +432,11 @@ function displayCurrentLeaderboard() {
         
         const firstPlaceName = document.createElement('div');
         firstPlaceName.className = 'podium-name';
-        firstPlaceName.textContent = CURRENT_SCORES[0].name;
+        firstPlaceName.textContent = displayScores[0].name;
         
         const firstPlaceScore = document.createElement('div');
         firstPlaceScore.className = 'podium-score';
-        firstPlaceScore.textContent = formatNumberWithDots(CURRENT_SCORES[0].score);
+        firstPlaceScore.textContent = formatNumberWithDots(displayScores[0].score);
         
         firstPlaceDiv.appendChild(firstPlaceNum);
         firstPlaceDiv.appendChild(firstPlaceName);
@@ -387,7 +444,7 @@ function displayCurrentLeaderboard() {
         firstPlace.appendChild(firstPlaceDiv);
     }
     
-    if (CURRENT_SCORES.length >= 2) {
+    if (displayScores.length >= 2) {
         const secondPlaceDiv = document.createElement('div');
         secondPlaceDiv.className = 'second-place';
         
@@ -397,11 +454,11 @@ function displayCurrentLeaderboard() {
         
         const secondPlaceName = document.createElement('div');
         secondPlaceName.className = 'podium-name';
-        secondPlaceName.textContent = CURRENT_SCORES[1].name;
+        secondPlaceName.textContent = displayScores[1].name;
         
         const secondPlaceScore = document.createElement('div');
         secondPlaceScore.className = 'podium-score';
-        secondPlaceScore.textContent = formatNumberWithDots(CURRENT_SCORES[1].score);
+        secondPlaceScore.textContent = formatNumberWithDots(displayScores[1].score);
         
         secondPlaceDiv.appendChild(secondPlaceNum);
         secondPlaceDiv.appendChild(secondPlaceName);
@@ -409,7 +466,7 @@ function displayCurrentLeaderboard() {
         secondPlace.appendChild(secondPlaceDiv);
     }
     
-    if (CURRENT_SCORES.length >= 3) {
+    if (displayScores.length >= 3) {
         const thirdPlaceDiv = document.createElement('div');
         thirdPlaceDiv.className = 'third-place';
         
@@ -419,11 +476,11 @@ function displayCurrentLeaderboard() {
         
         const thirdPlaceName = document.createElement('div');
         thirdPlaceName.className = 'podium-name';
-        thirdPlaceName.textContent = CURRENT_SCORES[2].name;
+        thirdPlaceName.textContent = displayScores[2].name;
         
         const thirdPlaceScore = document.createElement('div');
         thirdPlaceScore.className = 'podium-score';
-        thirdPlaceScore.textContent = formatNumberWithDots(CURRENT_SCORES[2].score);
+        thirdPlaceScore.textContent = formatNumberWithDots(displayScores[2].score);
         
         thirdPlaceDiv.appendChild(thirdPlaceNum);
         thirdPlaceDiv.appendChild(thirdPlaceName);
@@ -437,6 +494,54 @@ function displayCurrentLeaderboard() {
     podiumDiv.appendChild(thirdPlace);
     
     currentLeaderboardDiv.appendChild(podiumDiv);
+}
+
+// Display all current scores in the modal
+function displayAllCurrentScores() {
+    const currentScoresListDiv = document.getElementById('current-scores-list');
+    currentScoresListDiv.innerHTML = '';
+    
+    if (CURRENT_SCORES.length === 0) {
+        const noScoresMsg = document.createElement('p');
+        noScoresMsg.textContent = 'No scores submitted yet for this tournament.';
+        currentScoresListDiv.appendChild(noScoresMsg);
+        return;
+    }
+    
+    // Add tournament info
+    const tournamentInfo = document.createElement('p');
+    tournamentInfo.innerHTML = `<strong>Current Tournament:</strong> Week ${CURRENT_TOURNAMENT.week} - ${CURRENT_TOURNAMENT.period}`;
+    tournamentInfo.style.textAlign = 'center';
+    tournamentInfo.style.marginBottom = '20px';
+    currentScoresListDiv.appendChild(tournamentInfo);
+    
+    // Create list to display all scores
+    const scoresList = document.createElement('ul');
+    scoresList.className = 'runner-list';
+    
+    // Add each player's score to the list
+    CURRENT_SCORES.forEach((player, index) => {
+        const listItem = document.createElement('li');
+        
+        const position = document.createElement('span');
+        position.className = 'runner-position';
+        position.textContent = `${index + 1}.`;
+        
+        const name = document.createElement('span');
+        name.textContent = player.name;
+        
+        const score = document.createElement('span');
+        score.className = 'runner-score';
+        score.textContent = formatNumberWithDots(player.score);
+        
+        listItem.appendChild(position);
+        listItem.appendChild(name);
+        listItem.appendChild(score);
+        
+        scoresList.appendChild(listItem);
+    });
+    
+    currentScoresListDiv.appendChild(scoresList);
 }
 
 // Display latest tournament results
