@@ -86,7 +86,7 @@ button:hover {
     justify-content: flex-end;
 }
 .second-place {
-    height: 150px;
+    height: 140px;
     width: 120px;
     background-color: #bdc3c7;
     border-radius: 8px 8px 0 0;
@@ -95,7 +95,7 @@ button:hover {
     justify-content: flex-end;
 }
 .third-place {
-    height: 130px;
+    height: 100px;
     width: 120px;
     background-color: #cd6133;
     border-radius: 8px 8px 0 0;

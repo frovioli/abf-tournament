@@ -28,7 +28,10 @@ const currentLeaderboardDiv = document.getElementById('current-leaderboard');
 // Initialize with auto-refresh
 // Load data immediately when page loads
 window.addEventListener('DOMContentLoaded', function() {
-    // First load the config, then load the data
+    // Set up score input formatting
+    setupScoreInputFormatting();
+    
+    // Load the config, then load the data
     loadConfig().then(() => {
         loadData();
     }).catch(error => {
@@ -38,6 +41,128 @@ window.addEventListener('DOMContentLoaded', function() {
         contentContainer.classList.add('content-loaded');
     });
 });
+
+// Set up score input formatting
+function setupScoreInputFormatting() {
+    // Add input event listener for formatting
+    scoreInput.addEventListener('input', function(e) {
+        // Allow only numeric input
+        let value = this.value.replace(/[^\d]/g, ''); // Remove all non-digits
+        
+        // Enforce 8 character limit
+        if (value.length > 8) {
+            value = value.substring(0, 8);
+        }
+        
+        // Format with dots
+        let formattedValue = '';
+        for (let i = 0; i < value.length; i++) {
+            // Add a dot after each 3rd digit, but not at the beginning
+            if (i > 0 && i % 3 === 0) {
+                formattedValue += '.';
+            }
+            formattedValue += value[i];
+        }
+        
+        // Set the formatted value
+        this.value = formattedValue;
+    });
+    
+    // Prevent invalid keypress events (only allow numbers)
+    scoreInput.addEventListener('keypress', function(e) {
+        const charCode = (e.which) ? e.which : e.keyCode;
+        
+        // Allow only numeric input (0-9)
+        if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Also prevent if we've already reached 8 digits (excluding dots)
+        const currentDigits = this.value.replace(/\./g, '').length;
+        if (currentDigits >= 8) {
+            e.preventDefault();
+            return false;
+        }
+        
+        return true;
+    });
+    
+    // Handle paste events to ensure only numbers are pasted
+    scoreInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        
+        // Get pasted data
+        let pastedText = '';
+        if (window.clipboardData && window.clipboardData.getData) {
+            // For IE
+            pastedText = window.clipboardData.getData('Text');
+        } else if (e.clipboardData && e.clipboardData.getData) {
+            // For other browsers
+            pastedText = e.clipboardData.getData('text/plain');
+        }
+        
+        // Process pasted text to only keep numbers
+        const numericText = pastedText.replace(/[^\d]/g, '').substring(0, 8);
+        
+        // Insert at cursor position or replace selection
+        if (document.selection) {
+            // For IE
+            const ieRange = document.selection.createRange();
+            ieRange.text = numericText;
+            this.focus();
+        } else if (this.selectionStart || this.selectionStart === 0) {
+            // For other browsers
+            const startPos = this.selectionStart;
+            const endPos = this.selectionEnd;
+            const scrollTop = this.scrollTop;
+            
+            // Get current value without dots
+            let currentValue = this.value.replace(/\./g, '');
+            
+            // Calculate new value (respecting the selection and max length)
+            let beforeSelection = currentValue.substring(0, startPos);
+            let afterSelection = currentValue.substring(endPos);
+            
+            // Make sure the total length doesn't exceed 8
+            const combinedLength = beforeSelection.length + numericText.length + afterSelection.length;
+            let newValue;
+            
+            if (combinedLength > 8) {
+                // If it would exceed 8, truncate the pasted text
+                const allowedPastedLength = 8 - (beforeSelection.length + afterSelection.length);
+                const truncatedPaste = numericText.substring(0, allowedPastedLength);
+                newValue = beforeSelection + truncatedPaste + afterSelection;
+            } else {
+                newValue = beforeSelection + numericText + afterSelection;
+            }
+            
+            // Format with dots
+            let formattedValue = '';
+            for (let i = 0; i < newValue.length; i++) {
+                if (i > 0 && i % 3 === 0) {
+                    formattedValue += '.';
+                }
+                formattedValue += newValue[i];
+            }
+            
+            // Update the input value
+            this.value = formattedValue;
+            
+            // Update cursor position
+            const newCursorPos = startPos + numericText.length;
+            this.selectionStart = newCursorPos;
+            this.selectionEnd = newCursorPos;
+            this.scrollTop = scrollTop;
+        } else {
+            this.value = numericText;
+        }
+        
+        // Trigger the input event to ensure correct formatting
+        const inputEvent = new Event('input', { bubbles: true });
+        this.dispatchEvent(inputEvent);
+    });
+}
 
 // Load API URL from config.js
 async function loadConfig() {
@@ -193,6 +318,25 @@ function updateCountdown() {
     countdownDiv.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
+// Format number with dots for display
+function formatNumberWithDots(number) {
+    // Convert to string and ensure it's a valid number
+    if (!number && number !== 0) return '-';
+    
+    // Convert to string and split into groups of 3 digits
+    const numStr = number.toString();
+    let formattedStr = '';
+    
+    for (let i = 0; i < numStr.length; i++) {
+        if (i > 0 && (numStr.length - i) % 3 === 0) {
+            formattedStr += '.';
+        }
+        formattedStr += numStr[i];
+    }
+    
+    return formattedStr;
+}
+
 // Display current leaderboard
 function displayCurrentLeaderboard() {
     // Clear existing content
@@ -240,7 +384,7 @@ function displayCurrentLeaderboard() {
         
         const firstPlaceScore = document.createElement('div');
         firstPlaceScore.className = 'podium-score';
-        firstPlaceScore.textContent = CURRENT_SCORES[0].score;
+        firstPlaceScore.textContent = formatNumberWithDots(CURRENT_SCORES[0].score);
         
         firstPlaceDiv.appendChild(firstPlaceNum);
         firstPlaceDiv.appendChild(firstPlaceName);
@@ -262,7 +406,7 @@ function displayCurrentLeaderboard() {
         
         const secondPlaceScore = document.createElement('div');
         secondPlaceScore.className = 'podium-score';
-        secondPlaceScore.textContent = CURRENT_SCORES[1].score;
+        secondPlaceScore.textContent = formatNumberWithDots(CURRENT_SCORES[1].score);
         
         secondPlaceDiv.appendChild(secondPlaceNum);
         secondPlaceDiv.appendChild(secondPlaceName);
@@ -284,7 +428,7 @@ function displayCurrentLeaderboard() {
         
         const thirdPlaceScore = document.createElement('div');
         thirdPlaceScore.className = 'podium-score';
-        thirdPlaceScore.textContent = CURRENT_SCORES[2].score;
+        thirdPlaceScore.textContent = formatNumberWithDots(CURRENT_SCORES[2].score);
         
         thirdPlaceDiv.appendChild(thirdPlaceNum);
         thirdPlaceDiv.appendChild(thirdPlaceName);
@@ -332,32 +476,34 @@ function displayLatestResults() {
     document.getElementById('sixth-place-name').textContent = "-";
     document.getElementById('sixth-place-score').textContent = "-";
     
-    // Display available results
+    // Display available results with formatted scores
     topResults.forEach((result, index) => {
+        const formattedScore = formatNumberWithDots(result.score);
+        
         switch (index) {
             case 0: // 1st place
                 document.getElementById('first-place-name').textContent = result.name;
-                document.getElementById('first-place-score').textContent = result.score;
+                document.getElementById('first-place-score').textContent = formattedScore;
                 break;
             case 1: // 2nd place
                 document.getElementById('second-place-name').textContent = result.name;
-                document.getElementById('second-place-score').textContent = result.score;
+                document.getElementById('second-place-score').textContent = formattedScore;
                 break;
             case 2: // 3rd place
                 document.getElementById('third-place-name').textContent = result.name;
-                document.getElementById('third-place-score').textContent = result.score;
+                document.getElementById('third-place-score').textContent = formattedScore;
                 break;
             case 3: // 4th place
                 document.getElementById('fourth-place-name').textContent = result.name;
-                document.getElementById('fourth-place-score').textContent = result.score;
+                document.getElementById('fourth-place-score').textContent = formattedScore;
                 break;
             case 4: // 5th place
                 document.getElementById('fifth-place-name').textContent = result.name;
-                document.getElementById('fifth-place-score').textContent = result.score;
+                document.getElementById('fifth-place-score').textContent = formattedScore;
                 break;
             case 5: // 6th place
                 document.getElementById('sixth-place-name').textContent = result.name;
-                document.getElementById('sixth-place-score').textContent = result.score;
+                document.getElementById('sixth-place-score').textContent = formattedScore;
                 break;
         }
     });
@@ -366,14 +512,15 @@ function displayLatestResults() {
 // Form submission
 submitBtn.addEventListener('click', async function() {
     const player = playerSelect.value;
-    const score = parseInt(scoreInput.value);
+    const scoreFormatted = scoreInput.value.replace(/\./g, ''); // Remove dots for processing
+    const score = parseInt(scoreFormatted);
     
     if (!player) {
         showMessage('Please select your name', 'error');
         return;
     }
     
-    if (!score || isNaN(score) || score < 0) {
+    if (!scoreFormatted || isNaN(score) || score <= 0) {
         showMessage('Please enter a valid score', 'error');
         return;
     }
@@ -387,7 +534,7 @@ submitBtn.addEventListener('click', async function() {
     submitBtn.textContent = 'Submitting...';
     
     try {
-        // Submit to Google Sheets API
+        // Submit to Google Sheets API (send score without formatting)
         const response = await fetch(`${API_URL}?operation=submitScore&player=${encodeURIComponent(player)}&score=${score}`, {
             method: 'POST'
         });
@@ -492,7 +639,7 @@ function displayPreviousTournaments() {
                 
                 const score = document.createElement('span');
                 score.className = 'runner-score';
-                score.textContent = result.score;
+                score.textContent = formatNumberWithDots(result.score);
                 
                 listItem.appendChild(position);
                 listItem.appendChild(name);
