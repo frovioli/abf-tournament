@@ -46,6 +46,13 @@ window.addEventListener('DOMContentLoaded', function() {
 function setupScoreInputFormatting() {
     // Add input event listener for formatting
     scoreInput.addEventListener('input', function(e) {
+        // Get current cursor position
+        const cursorPos = this.selectionStart;
+        
+        // Store the number of dots before the cursor
+        const textBeforeCursor = this.value.substring(0, cursorPos);
+        const dotsBeforeCursor = (textBeforeCursor.match(/\./g) || []).length;
+        
         // Allow only numeric input
         let value = this.value.replace(/[^\d]/g, ''); // Remove all non-digits
         
@@ -54,18 +61,25 @@ function setupScoreInputFormatting() {
             value = value.substring(0, 8);
         }
         
-        // Format with dots
-        let formattedValue = '';
-        for (let i = 0; i < value.length; i++) {
-            // Add a dot after each 3rd digit, but not at the beginning
-            if (i > 0 && i % 3 === 0) {
-                formattedValue += '.';
-            }
-            formattedValue += value[i];
-        }
+        // Format with dots from right to left (proper thousand separators)
+        const formattedValue = value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         
         // Set the formatted value
         this.value = formattedValue;
+        
+        // Calculate new cursor position
+        if (cursorPos > 0) {
+            // Count dots in the new formatted text before where cursor was
+            const newTextBeforeCursor = formattedValue.substring(0, cursorPos + (formattedValue.length - this.value.length));
+            const newDotsBeforeCursor = (newTextBeforeCursor.match(/\./g) || []).length;
+            
+            // Adjust cursor position based on dots difference
+            const dotsDiff = newDotsBeforeCursor - dotsBeforeCursor;
+            const newCursorPos = cursorPos + dotsDiff;
+            
+            // Set cursor position
+            this.setSelectionRange(newCursorPos, newCursorPos);
+        }
     });
     
     // Prevent invalid keypress events (only allow numbers)
@@ -105,62 +119,49 @@ function setupScoreInputFormatting() {
         // Process pasted text to only keep numbers
         const numericText = pastedText.replace(/[^\d]/g, '').substring(0, 8);
         
+        // Get current value without dots
+        let currentValueNoFormat = this.value.replace(/\./g, '');
+        
         // Insert at cursor position or replace selection
-        if (document.selection) {
-            // For IE
-            const ieRange = document.selection.createRange();
-            ieRange.text = numericText;
-            this.focus();
-        } else if (this.selectionStart || this.selectionStart === 0) {
-            // For other browsers
+        if (this.selectionStart !== undefined) {
             const startPos = this.selectionStart;
             const endPos = this.selectionEnd;
-            const scrollTop = this.scrollTop;
             
-            // Get current value without dots
-            let currentValue = this.value.replace(/\./g, '');
+            // Calculate new value respecting selection and max length
+            const beforeSelection = currentValueNoFormat.substring(0, startPos);
+            const afterSelection = currentValueNoFormat.substring(endPos);
             
-            // Calculate new value (respecting the selection and max length)
-            let beforeSelection = currentValue.substring(0, startPos);
-            let afterSelection = currentValue.substring(endPos);
-            
-            // Make sure the total length doesn't exceed 8
-            const combinedLength = beforeSelection.length + numericText.length + afterSelection.length;
-            let newValue;
-            
-            if (combinedLength > 8) {
-                // If it would exceed 8, truncate the pasted text
-                const allowedPastedLength = 8 - (beforeSelection.length + afterSelection.length);
-                const truncatedPaste = numericText.substring(0, allowedPastedLength);
-                newValue = beforeSelection + truncatedPaste + afterSelection;
-            } else {
-                newValue = beforeSelection + numericText + afterSelection;
+            // Make sure we don't exceed 8 digits
+            let newValueNoFormat = beforeSelection + numericText + afterSelection;
+            if (newValueNoFormat.length > 8) {
+                newValueNoFormat = newValueNoFormat.substring(0, 8);
             }
             
-            // Format with dots
-            let formattedValue = '';
-            for (let i = 0; i < newValue.length; i++) {
-                if (i > 0 && i % 3 === 0) {
-                    formattedValue += '.';
-                }
-                formattedValue += newValue[i];
-            }
+            // Format the value with dots
+            const formattedValue = newValueNoFormat.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
             
-            // Update the input value
+            // Update the input
             this.value = formattedValue;
             
-            // Update cursor position
+            // Calculate cursor position
             const newCursorPos = startPos + numericText.length;
-            this.selectionStart = newCursorPos;
-            this.selectionEnd = newCursorPos;
-            this.scrollTop = scrollTop;
+            // Set cursor position - need to adjust for any dots that were added
+            setTimeout(() => {
+                // Count dots added before cursor position
+                const newValueBeforeCursor = newValueNoFormat.substring(0, newCursorPos);
+                const dotsAdded = (newValueBeforeCursor.match(/\B(?=(\d{3})+(?!\d))/g) || []).length;
+                
+                this.setSelectionRange(newCursorPos + dotsAdded, newCursorPos + dotsAdded);
+            }, 0);
         } else {
-            this.value = numericText;
+            // Fallback for browsers without selection support
+            let newValueNoFormat = numericText;
+            if (newValueNoFormat.length > 8) {
+                newValueNoFormat = newValueNoFormat.substring(0, 8);
+            }
+            
+            this.value = newValueNoFormat.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
-        
-        // Trigger the input event to ensure correct formatting
-        const inputEvent = new Event('input', { bubbles: true });
-        this.dispatchEvent(inputEvent);
     });
 }
 
@@ -318,23 +319,17 @@ function updateCountdown() {
     countdownDiv.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 }
 
-// Format number with dots for display
+// Format number with dots for display - proper formatting from right to left
 function formatNumberWithDots(number) {
     // Convert to string and ensure it's a valid number
     if (!number && number !== 0) return '-';
     
-    // Convert to string and split into groups of 3 digits
+    // Convert number to string
     const numStr = number.toString();
-    let formattedStr = '';
     
-    for (let i = 0; i < numStr.length; i++) {
-        if (i > 0 && (numStr.length - i) % 3 === 0) {
-            formattedStr += '.';
-        }
-        formattedStr += numStr[i];
-    }
-    
-    return formattedStr;
+    // Format number with dots every 3 digits from the right
+    // This uses a regex with look-ahead to add dots every 3 digits
+    return numStr.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
 
 // Display current leaderboard
