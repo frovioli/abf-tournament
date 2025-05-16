@@ -212,87 +212,129 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Hide content until loaded */
+        .content-container {
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .content-loaded {
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
-    <h1>ABF Team Tournament</h1>
-    
-    <div class="tournament-info">
-        <div id="current-tournament">Week 20 – Mon to Wed</div>
-        <div class="timer" id="countdown">2d 15h 23m</div>
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
     </div>
     
-    <div class="submission-form">
-        <div id="message" class="message"></div>
-        <div class="form-group">
-            <label for="player-select">You're</label>
-            <select id="player-select">
-                <option value="" disabled selected>Select your name</option>
-                <!-- Players will be loaded here -->
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="score-input">Your Score is</label>
-            <input type="number" id="score-input" min="0">
-        </div>
-        <button id="submit-btn">Submit</button>
-    </div>
-    
-    <div class="results-section">
-        <h2 class="results-title" id="last-tournament-title">Tournament Results for Week 19 Thu to Fri</h2>
+    <div id="content-container" class="content-container">
+        <h1>ABF Team Tournament</h1>
         
-        <div class="podium">
-            <div class="podium-place">
-                <div class="second-place">
-                    <div class="podium-number">2</div>
-                    <div class="podium-name" id="second-place-name">Player 2</div>
-                    <div class="podium-score" id="second-place-score">850</div>
-                </div>
-            </div>
-            <div class="podium-place">
-                <div class="first-place">
-                    <div class="podium-number">1</div>
-                    <div class="podium-name" id="first-place-name">Player 1</div>
-                    <div class="podium-score" id="first-place-score">1000</div>
-                </div>
-            </div>
-            <div class="podium-place">
-                <div class="third-place">
-                    <div class="podium-number">3</div>
-                    <div class="podium-name" id="third-place-name">Player 3</div>
-                    <div class="podium-score" id="third-place-score">700</div>
-                </div>
-            </div>
+        <div class="tournament-info">
+            <div id="current-tournament">Loading tournament info...</div>
+            <div class="timer" id="countdown"></div>
+            <button id="refresh-btn" style="margin-top: 10px; font-size: 14px; padding: 8px 15px; background-color: #34495e;">
+                Refresh Data
+            </button>
         </div>
         
-        <ul class="runner-list">
-            <li>
-                <span class="runner-position">4.</span>
-                <span id="fourth-place-name">Player 4</span>
-                <span class="runner-score" id="fourth-place-score">650</span>
-            </li>
-            <li>
-                <span class="runner-position">5.</span>
-                <span id="fifth-place-name">Player 5</span>
-                <span class="runner-score" id="fifth-place-score">600</span>
-            </li>
-            <li>
-                <span class="runner-position">6.</span>
-                <span id="sixth-place-name">Player 6</span>
-                <span class="runner-score" id="sixth-place-score">550</span>
-            </li>
-        </ul>
+        <div class="submission-form">
+            <div id="message" class="message"></div>
+            <div class="form-group">
+                <label for="player-select">You're</label>
+                <select id="player-select">
+                    <option value="" disabled selected>Select your name</option>
+                    <!-- Players will be loaded here -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="score-input">Your Score is</label>
+                <input type="number" id="score-input" min="0">
+            </div>
+            <button id="submit-btn">Submit</button>
+        </div>
         
-        <button id="previous-scores-btn" class="previous-button">Check previous scores</button>
-    </div>
-    
-    <!-- Modal for previous results -->
-    <div id="previous-modal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>Previous Scores</h2>
-            <div id="previous-tournaments">
-                <!-- Previous tournaments will be loaded here -->
+        <div class="results-section">
+            <h2 class="results-title" id="last-tournament-title">Loading previous results...</h2>
+            
+            <div class="podium">
+                <div class="podium-place">
+                    <div class="second-place">
+                        <div class="podium-number">2</div>
+                        <div class="podium-name" id="second-place-name">-</div>
+                        <div class="podium-score" id="second-place-score">-</div>
+                    </div>
+                </div>
+                <div class="podium-place">
+                    <div class="first-place">
+                        <div class="podium-number">1</div>
+                        <div class="podium-name" id="first-place-name">-</div>
+                        <div class="podium-score" id="first-place-score">-</div>
+                    </div>
+                </div>
+                <div class="podium-place">
+                    <div class="third-place">
+                        <div class="podium-number">3</div>
+                        <div class="podium-name" id="third-place-name">-</div>
+                        <div class="podium-score" id="third-place-score">-</div>
+                    </div>
+                </div>
+            </div>
+            
+            <ul class="runner-list">
+                <li>
+                    <span class="runner-position">4.</span>
+                    <span id="fourth-place-name">-</span>
+                    <span class="runner-score" id="fourth-place-score">-</span>
+                </li>
+                <li>
+                    <span class="runner-position">5.</span>
+                    <span id="fifth-place-name">-</span>
+                    <span class="runner-score" id="fifth-place-score">-</span>
+                </li>
+                <li>
+                    <span class="runner-position">6.</span>
+                    <span id="sixth-place-name">-</span>
+                    <span class="runner-score" id="sixth-place-score">-</span>
+                </li>
+            </ul>
+            
+            <button id="previous-scores-btn" class="previous-button">Check previous scores</button>
+        </div>
+        
+        <!-- Modal for previous results -->
+        <div id="previous-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Previous Scores</h2>
+                <div id="previous-tournaments">
+                    <!-- Previous tournaments will be loaded here -->
+                </div>
             </div>
         </div>
     </div>
@@ -304,11 +346,7 @@
         // Data variables (will be populated from Google Sheets)
         let PLAYERS = [];
         let TOURNAMENTS = [];
-        let CURRENT_TOURNAMENT = {
-            week: 0,
-            period: "",
-            endDate: new Date()
-        };
+        let CURRENT_TOURNAMENT = null;
         
         // DOM elements
         const playerSelect = document.getElementById('player-select');
@@ -322,6 +360,8 @@
         const previousModal = document.getElementById('previous-modal');
         const closeModalBtn = document.querySelector('.close');
         const previousTournamentsDiv = document.getElementById('previous-tournaments');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const contentContainer = document.getElementById('content-container');
         
         // Populate player dropdown
         function populatePlayers() {
@@ -335,53 +375,106 @@
         
         // Update current tournament info
         function updateCurrentTournament() {
+            if (!CURRENT_TOURNAMENT) return;
+            
+            // Format the current tournament info
             currentTournamentDiv.textContent = `Week ${CURRENT_TOURNAMENT.week} – ${CURRENT_TOURNAMENT.period}`;
+            
+            // Set up countdown
             updateCountdown();
-            setInterval(updateCountdown, 60000); // Update every minute
+            
+            // Update countdown every second
+            setInterval(updateCountdown, 1000);
         }
         
         // Update countdown timer
         function updateCountdown() {
+            if (!CURRENT_TOURNAMENT) return;
+            
             const now = new Date();
-            const timeLeft = CURRENT_TOURNAMENT.endDate - now;
+            const endDate = new Date(CURRENT_TOURNAMENT.endDate);
+            const timeLeft = endDate - now;
             
             if (timeLeft <= 0) {
                 countdownDiv.textContent = "Tournament ended";
+                
+                // Reload data if tournament has ended
+                if (timeLeft > -60000 && timeLeft <= 0) { // Within a minute of ending
+                    loadData(); // Reload to get new tournament
+                }
                 return;
             }
             
+            // Calculate days, hours, minutes, seconds
             const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
             const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
             const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
             
-            countdownDiv.textContent = `${days}d ${hours}h ${minutes}m`;
+            countdownDiv.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
         }
         
         // Display latest tournament results
         function displayLatestResults() {
+            if (TOURNAMENTS.length === 0) {
+                // No tournaments yet
+                lastTournamentTitle.textContent = "No previous tournament results yet";
+                return;
+            }
+            
             const latestTournament = TOURNAMENTS[0]; // First tournament is the latest
             
             lastTournamentTitle.textContent = `Tournament Results for Week ${latestTournament.week} ${latestTournament.period}`;
             
-            // Display podium
-            document.getElementById('first-place-name').textContent = latestTournament.results[0].name;
-            document.getElementById('first-place-score').textContent = latestTournament.results[0].score;
+            // Sort results by rank
+            latestTournament.results.sort((a, b) => a.rank - b.rank);
             
-            document.getElementById('second-place-name').textContent = latestTournament.results[1].name;
-            document.getElementById('second-place-score').textContent = latestTournament.results[1].score;
+            // Get top 6 results or fewer if not enough
+            const topResults = latestTournament.results.slice(0, 6);
             
-            document.getElementById('third-place-name').textContent = latestTournament.results[2].name;
-            document.getElementById('third-place-score').textContent = latestTournament.results[2].score;
+            // Reset all places first
+            document.getElementById('first-place-name').textContent = "-";
+            document.getElementById('first-place-score').textContent = "-";
+            document.getElementById('second-place-name').textContent = "-";
+            document.getElementById('second-place-score').textContent = "-";
+            document.getElementById('third-place-name').textContent = "-";
+            document.getElementById('third-place-score').textContent = "-";
+            document.getElementById('fourth-place-name').textContent = "-";
+            document.getElementById('fourth-place-score').textContent = "-";
+            document.getElementById('fifth-place-name').textContent = "-";
+            document.getElementById('fifth-place-score').textContent = "-";
+            document.getElementById('sixth-place-name').textContent = "-";
+            document.getElementById('sixth-place-score').textContent = "-";
             
-            // Display runners-up
-            document.getElementById('fourth-place-name').textContent = latestTournament.results[3].name;
-            document.getElementById('fourth-place-score').textContent = latestTournament.results[3].score;
-            
-            document.getElementById('fifth-place-name').textContent = latestTournament.results[4].name;
-            document.getElementById('fifth-place-score').textContent = latestTournament.results[4].score;
-            
-            document.getElementById('sixth-place-name').textContent = latestTournament.results[5].name;
-            document.getElementById('sixth-place-score').textContent = latestTournament.results[5].score;
+            // Display available results
+            topResults.forEach((result, index) => {
+                switch (index) {
+                    case 0: // 1st place
+                        document.getElementById('first-place-name').textContent = result.name;
+                        document.getElementById('first-place-score').textContent = result.score;
+                        break;
+                    case 1: // 2nd place
+                        document.getElementById('second-place-name').textContent = result.name;
+                        document.getElementById('second-place-score').textContent = result.score;
+                        break;
+                    case 2: // 3rd place
+                        document.getElementById('third-place-name').textContent = result.name;
+                        document.getElementById('third-place-score').textContent = result.score;
+                        break;
+                    case 3: // 4th place
+                        document.getElementById('fourth-place-name').textContent = result.name;
+                        document.getElementById('fourth-place-score').textContent = result.score;
+                        break;
+                    case 4: // 5th place
+                        document.getElementById('fifth-place-name').textContent = result.name;
+                        document.getElementById('fifth-place-score').textContent = result.score;
+                        break;
+                    case 5: // 6th place
+                        document.getElementById('sixth-place-name').textContent = result.name;
+                        document.getElementById('sixth-place-score').textContent = result.score;
+                        break;
+                }
+            });
         }
         
         // Display all previous tournaments
@@ -440,6 +533,10 @@
                 return;
             }
             
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+            contentContainer.classList.remove('content-loaded');
+            
             // Disable button during submission
             submitBtn.disabled = true;
             submitBtn.textContent = 'Submitting...';
@@ -460,13 +557,21 @@
                     scoreInput.value = '';
                     
                     // Reload data to get updated scores
-                    loadData();
+                    await loadData();
                 } else {
                     showMessage(result.message, 'error');
+                    
+                    // Hide loading overlay even on error
+                    loadingOverlay.style.display = 'none';
+                    contentContainer.classList.add('content-loaded');
                 }
             } catch (error) {
                 console.error('Error submitting score:', error);
                 showMessage('Error submitting score. Please try again.', 'error');
+                
+                // Hide loading overlay on error
+                loadingOverlay.style.display = 'none';
+                contentContainer.classList.add('content-loaded');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit';
@@ -506,9 +611,15 @@
         // Load all data from Google Sheets
         async function loadData() {
             try {
+                // Show loading overlay
+                document.getElementById('loading-overlay').style.display = 'flex';
+                document.getElementById('content-container').classList.remove('content-loaded');
+                
                 // Load current tournament
                 const tournamentResponse = await fetch(`${API_URL}?operation=getCurrentTournament`);
                 CURRENT_TOURNAMENT = await tournamentResponse.json();
+                
+                // Convert the endDate string to a Date object for easier comparison
                 CURRENT_TOURNAMENT.endDate = new Date(CURRENT_TOURNAMENT.endDate);
                 
                 // Load players
@@ -523,12 +634,61 @@
                 // Update the UI
                 populatePlayers();
                 updateCurrentTournament();
-                displayLatestResults();
+                
+                // Only display results if there are tournaments
+                if (TOURNAMENTS.length > 0) {
+                    displayLatestResults();
+                } else {
+                    document.getElementById('last-tournament-title').textContent = "No previous tournament results yet";
+                }
+                
+                // Hide loading overlay and show content with animation
+                setTimeout(() => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    document.getElementById('content-container').classList.add('content-loaded');
+                }, 500);
+                
+                console.log("Current tournament data:", CURRENT_TOURNAMENT);
             } catch (error) {
                 console.error('Error loading data:', error);
                 showMessage('Error loading data. Please refresh the page.', 'error');
+                
+                // Hide loading overlay even on error
+                document.getElementById('loading-overlay').style.display = 'none';
+                document.getElementById('content-container').classList.add('content-loaded');
             }
         }
+        
+        // Initialize with auto-refresh
+        // Load data immediately when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+        
+        // Refresh button
+        document.getElementById('refresh-btn').addEventListener('click', function() {
+            loadData();
+        });
+        
+        // Set up periodic polling to check for tournament updates (every 5 minutes)
+        setInterval(async () => {
+            try {
+                const response = await fetch(`${API_URL}?operation=getCurrentTournament`);
+                const newTournament = await response.json();
+                
+                // Compare with current tournament
+                if (CURRENT_TOURNAMENT && (
+                    CURRENT_TOURNAMENT.week !== newTournament.week || 
+                    CURRENT_TOURNAMENT.period !== newTournament.period
+                )) {
+                    // Tournament has changed, reload all data
+                    loadData();
+                    showMessage('Tournament has been updated', 'success');
+                }
+            } catch (error) {
+                console.error('Error checking for tournament updates:', error);
+            }
+        }, 5 * 60 * 1000); // Check every 5 minutes
     </script>
 </body>
 </html>
