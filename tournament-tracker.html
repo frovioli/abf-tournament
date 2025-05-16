@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABF Team Tournament</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .tournament-info {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .timer {
+            color: #e74c3c;
+        }
+        .submission-form {
+            background-color: #eaf2f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .results-section {
+            margin-top: 30px;
+        }
+        .results-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 200px;
+            margin-bottom: 30px;
+        }
+        .podium-place {
+            text-align: center;
+            margin: 0 10px;
+        }
+        .first-place {
+            height: 180px;
+            width: 120px;
+            background-color: #f1c40f;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .second-place {
+            height: 140px;
+            width: 120px;
+            background-color: #bdc3c7;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .third-place {
+            height: 100px;
+            width: 120px;
+            background-color: #cd6133;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .podium-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 10px;
+        }
+        .podium-name {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 0 5px 5px 5px;
+            font-weight: bold;
+        }
+        .podium-score {
+            background-color: #2c3e50;
+            color: white;
+            padding: 5px;
+            border-radius: 0 0 4px 4px;
+            margin: 0 5px 5px 5px;
+        }
+        .runner-list {
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+        .runner-list li {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .runner-position {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-right: 10px;
+        }
+        .runner-score {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .previous-button {
+            background-color: #2c3e50;
+            margin-top: 20px;
+        }
+        .previous-button:hover {
+            background-color: #1a252f;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .previous-tournament {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            text-align: center;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>ABF Team Tournament</h1>
+    
+    <div class="tournament-info">
+        <div id="current-tournament">Week 20 – Mon to Wed</div>
+        <div class="timer" id="countdown">2d 15h 23m</div>
+    </div>
+    
+    <div class="submission-form">
+        <div id="message" class="message"></div>
+        <div class="form-group">
+            <label for="player-select">You're</label>
+            <select id="player-select">
+                <option value="" disabled selected>Select your name</option>
+                <!-- Players will be loaded here -->
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="score-input">Your Score is</label>
+            <input type="number" id="score-input" min="0">
+        </div>
+        <button id="submit-btn">Submit</button>
+    </div>
+    
+    <div class="results-section">
+        <h2 class="results-title" id="last-tournament-title">Tournament Results for Week 19 Thu to Fri</h2>
+        
+        <div class="podium">
+            <div class="podium-place">
+                <div class="second-place">
+                    <div class="podium-number">2</div>
+                    <div class="podium-name" id="second-place-name">Player 2</div>
+                    <div class="podium-score" id="second-place-score">850</div>
+                </div>
+            </div>
+            <div class="podium-place">
+                <div class="first-place">
+                    <div class="podium-number">1</div>
+                    <div class="podium-name" id="first-place-name">Player 1</div>
+                    <div class="podium-score" id="first-place-score">1000</div>
+                </div>
+            </div>
+            <div class="podium-place">
+                <div class="third-place">
+                    <div class="podium-number">3</div>
+                    <div class="podium-name" id="third-place-name">Player 3</div>
+                    <div class="podium-score" id="third-place-score">700</div>
+                </div>
+            </div>
+        </div>
+        
+        <ul class="runner-list">
+            <li>
+                <span class="runner-position">4.</span>
+                <span id="fourth-place-name">Player 4</span>
+                <span class="runner-score" id="fourth-place-score">650</span>
+            </li>
+            <li>
+                <span class="runner-position">5.</span>
+                <span id="fifth-place-name">Player 5</span>
+                <span class="runner-score" id="fifth-place-score">600</span>
+            </li>
+            <li>
+                <span class="runner-position">6.</span>
+                <span id="sixth-place-name">Player 6</span>
+                <span class="runner-score" id="sixth-place-score">550</span>
+            </li>
+        </ul>
+        
+        <button id="previous-scores-btn" class="previous-button">Check previous scores</button>
+    </div>
+    
+    <!-- Modal for previous results -->
+    <div id="previous-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Previous Scores</h2>
+            <div id="previous-tournaments">
+                <!-- Previous tournaments will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Replace this with your Google Apps Script web app URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzqdO7nUp_X5r7HGnLBMQUMt_KWSg3_Eq-iU75En3Qqu7AJ77Z7hhVikQD6WIY5CAtq/exec';
+        
+        // Data variables (will be populated from Google Sheets)
+        let PLAYERS = [];
+        let TOURNAMENTS = [];
+        let CURRENT_TOURNAMENT = {
+            week: 0,
+            period: "",
+            endDate: new Date()
+        };
+        
+        // DOM elements
+        const playerSelect = document.getElementById('player-select');
+        const scoreInput = document.getElementById('score-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const messageDiv = document.getElementById('message');
+        const currentTournamentDiv = document.getElementById('current-tournament');
+        const countdownDiv = document.getElementById('countdown');
+        const lastTournamentTitle = document.getElementById('last-tournament-title');
+        const previousScoresBtn = document.getElementById('previous-scores-btn');
+        const previousModal = document.getElementById('previous-modal');
+        const closeModalBtn = document.querySelector('.close');
+        const previousTournamentsDiv = document.getElementById('previous-tournaments');
+        
+        // Populate player dropdown
+        function populatePlayers() {
+            PLAYERS.forEach(player => {
+                const option = document.createElement('option');
+                option.value = player;
+                option.textContent = player;
+                playerSelect.appendChild(option);
+            });
+        }
+        
+        // Update current tournament info
+        function updateCurrentTournament() {
+            currentTournamentDiv.textContent = `Week ${CURRENT_TOURNAMENT.week} – ${CURRENT_TOURNAMENT.period}`;
+            updateCountdown();
+            setInterval(updateCountdown, 60000); // Update every minute
+        }
+        
+        // Update countdown timer
+        function updateCountdown() {
+            const now = new Date();
+            const timeLeft = CURRENT_TOURNAMENT.endDate - now;
+            
+            if (timeLeft <= 0) {
+                countdownDiv.textContent = "Tournament ended";
+                return;
+            }
+            
+            const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+            
+            countdownDiv.textContent = `${days}d ${hours}h ${minutes}m`;
+        }
+        
+        // Display latest tournament results
+        function displayLatestResults() {
+            const latestTournament = TOURNAMENTS[0]; // First tournament is the latest
+            
+            lastTournamentTitle.textContent = `Tournament Results for Week ${latestTournament.week} ${latestTournament.period}`;
+            
+            // Display podium
+            document.getElementById('first-place-name').textContent = latestTournament.results[0].name;
+            document.getElementById('first-place-score').textContent = latestTournament.results[0].score;
+            
+            document.getElementById('second-place-name').textContent = latestTournament.results[1].name;
+            document.getElementById('second-place-score').textContent = latestTournament.results[1].score;
+            
+            document.getElementById('third-place-name').textContent = latestTournament.results[2].name;
+            document.getElementById('third-place-score').textContent = latestTournament.results[2].score;
+            
+            // Display runners-up
+            document.getElementById('fourth-place-name').textContent = latestTournament.results[3].name;
+            document.getElementById('fourth-place-score').textContent = latestTournament.results[3].score;
+            
+            document.getElementById('fifth-place-name').textContent = latestTournament.results[4].name;
+            document.getElementById('fifth-place-score').textContent = latestTournament.results[4].score;
+            
+            document.getElementById('sixth-place-name').textContent = latestTournament.results[5].name;
+            document.getElementById('sixth-place-score').textContent = latestTournament.results[5].score;
+        }
+        
+        // Display all previous tournaments
+        function displayPreviousTournaments() {
+            previousTournamentsDiv.innerHTML = '';
+            
+            TOURNAMENTS.forEach(tournament => {
+                const tournamentDiv = document.createElement('div');
+                tournamentDiv.className = 'previous-tournament';
+                
+                const title = document.createElement('h3');
+                title.textContent = `Tournament Results for Week ${tournament.week} ${tournament.period}`;
+                tournamentDiv.appendChild(title);
+                
+                const list = document.createElement('ul');
+                list.className = 'runner-list';
+                
+                tournament.results.forEach((result, index) => {
+                    const listItem = document.createElement('li');
+                    
+                    const position = document.createElement('span');
+                    position.className = 'runner-position';
+                    position.textContent = `${index + 1}.`;
+                    
+                    const name = document.createElement('span');
+                    name.textContent = result.name;
+                    
+                    const score = document.createElement('span');
+                    score.className = 'runner-score';
+                    score.textContent = result.score;
+                    
+                    listItem.appendChild(position);
+                    listItem.appendChild(name);
+                    listItem.appendChild(score);
+                    
+                    list.appendChild(listItem);
+                });
+                
+                tournamentDiv.appendChild(list);
+                previousTournamentsDiv.appendChild(tournamentDiv);
+            });
+        }
+        
+        // Form submission
+        submitBtn.addEventListener('click', async function() {
+            const player = playerSelect.value;
+            const score = parseInt(scoreInput.value);
+            
+            if (!player) {
+                showMessage('Please select your name', 'error');
+                return;
+            }
+            
+            if (!score || isNaN(score) || score < 0) {
+                showMessage('Please enter a valid score', 'error');
+                return;
+            }
+            
+            // Disable button during submission
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Submitting...';
+            
+            try {
+                // Submit to Google Sheets API
+                const response = await fetch(`${API_URL}?operation=submitScore&player=${encodeURIComponent(player)}&score=${score}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showMessage('Score submitted successfully!', 'success');
+                    
+                    // Clear form
+                    playerSelect.selectedIndex = 0;
+                    scoreInput.value = '';
+                    
+                    // Reload data to get updated scores
+                    loadData();
+                } else {
+                    showMessage(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting score:', error);
+                showMessage('Error submitting score. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit';
+            }
+        });
+        
+        // Show message
+        function showMessage(text, type) {
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Modal handling
+        previousScoresBtn.addEventListener('click', function() {
+            displayPreviousTournaments();
+            previousModal.style.display = 'block';
+        });
+        
+        closeModalBtn.addEventListener('click', function() {
+            previousModal.style.display = 'none';
+        });
+        
+        window.addEventListener('click', function(event) {
+            if (event.target == previousModal) {
+                previousModal.style.display = 'none';
+            }
+        });
+        
+        // Initialize
+        loadData();
+        
+        // Load all data from Google Sheets
+        async function loadData() {
+            try {
+                // Load current tournament
+                const tournamentResponse = await fetch(`${API_URL}?operation=getCurrentTournament`);
+                CURRENT_TOURNAMENT = await tournamentResponse.json();
+                CURRENT_TOURNAMENT.endDate = new Date(CURRENT_TOURNAMENT.endDate);
+                
+                // Load players
+                const playersResponse = await fetch(`${API_URL}?operation=getPlayers`);
+                const playersData = await playersResponse.json();
+                PLAYERS = playersData.map(player => player.name);
+                
+                // Load tournament results
+                const resultsResponse = await fetch(`${API_URL}?operation=getResults`);
+                TOURNAMENTS = await resultsResponse.json();
+                
+                // Update the UI
+                populatePlayers();
+                updateCurrentTournament();
+                displayLatestResults();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showMessage('Error loading data. Please refresh the page.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
