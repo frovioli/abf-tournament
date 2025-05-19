@@ -554,6 +554,12 @@ function displayLatestResults() {
     
     const latestTournament = TOURNAMENTS[0]; // First tournament is the latest
     
+    // Check if the latest tournament has any results
+    if (!latestTournament.results || latestTournament.results.length === 0) {
+        lastTournamentTitle.textContent = "No previous tournament results yet";
+        return;
+    }
+    
     lastTournamentTitle.textContent = `Tournament Results for Week ${latestTournament.week} ${latestTournament.period}`;
     
     // Sort results by rank
